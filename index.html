@@ -3,128 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Live Disaster & Weather Map - India</title>
+    <title>Live Disaster & Weather Map</title>
     
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://unpkg.com">
-    
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --glass: rgba(10, 12, 18, 0.72);
-            --glass-border: rgba(255,255,255,0.08);
-            --accent: #ff4d4d;
-            --accent2: #ff9f43;
-            --text: #f0f2f5;
-            --muted: rgba(240,242,245,0.45);
-            --radius: 18px;
+            /* Apple-style translucent dark mode colors */
+            --glass: rgba(28, 28, 30, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --accent: #ff453a; /* iOS Red */
+            --accent2: #ff9f0a; /* iOS Orange */
+            --text: #ffffff;
+            --muted: #ebebf599; /* iOS Secondary Label */
+            --radius: 22px;
+            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         html, body {
             width: 100%; height: 100%;
             overflow: hidden;
-            background: #0a0c12;
-            font-family: 'DM Mono', monospace;
+            background: #000000;
+            font-family: var(--font-stack);
+            -webkit-font-smoothing: antialiased;
         }
 
         #map {
             width: 100vw;
-            height: 100vh;  /* Fallback for older browsers */
+            height: 100vh;
             height: 100dvh;
             position: fixed;
             inset: 0;
             z-index: 0;
         }
 
-        /* ── Weather Card ── */
+        /* ── Apple-style Weather Card ── */
         .weather-card {
             position: fixed;
-            top: 20px;
-            left: 20px;
+            top: 24px;
+            left: 24px;
             z-index: 1000;
             background: var(--glass);
-            backdrop-filter: blur(20px) saturate(1.4);
-            -webkit-backdrop-filter: blur(20px) saturate(1.4);
-            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 0.5px solid var(--glass-border);
             border-radius: var(--radius);
-            padding: 16px 20px;
-            min-width: 190px;
+            padding: 20px 24px;
+            min-width: 200px;
             color: var(--text);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
             opacity: 0;
-            transform: translateY(-8px);
-            transition: opacity .4s ease, transform .4s ease;
-            pointer-events: none; /* Ignore clicks when hidden */
+            transform: translateY(-10px);
+            transition: opacity 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            pointer-events: none;
         }
         .weather-card.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
         .weather-card .label {
-            font-size: 10px;
-            letter-spacing: .12em;
-            text-transform: uppercase;
+            font-size: 13px;
+            font-weight: 500;
             color: var(--muted);
-            margin-bottom: 6px;
+            margin-bottom: 2px;
         }
 
         .weather-card .temp {
-            font-family: 'Syne', sans-serif;
-            font-size: 42px;
-            font-weight: 700;
-            line-height: 1;
+            font-size: 48px;
+            font-weight: 300; /* Apple-style thin large numbers */
+            letter-spacing: -1.5px;
+            line-height: 1.1;
             color: var(--text);
+            margin-bottom: 12px;
         }
 
         .weather-card .temp sup {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 24px;
+            font-weight: 400;
             vertical-align: super;
+            letter-spacing: normal;
         }
 
         .weather-card .meta {
             display: flex;
-            gap: 14px;
-            margin-top: 10px;
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .weather-card .pill {
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 11px;
-            color: var(--muted);
-            background: rgba(255,255,255,0.06);
-            border-radius: 100px;
-            padding: 4px 10px;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 6px 12px;
         }
 
-        .weather-card .pill svg { flex-shrink: 0; }
+        .weather-card .pill svg { flex-shrink: 0; opacity: 0.7; }
 
-        /* ── Stats Bar (bottom) ── */
+        /* ── Apple-style Stats Bar (bottom) ── */
         .stats-bar {
             position: fixed;
-            bottom: 24px;
+            bottom: 32px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
             background: var(--glass);
-            backdrop-filter: blur(20px) saturate(1.4);
-            -webkit-backdrop-filter: blur(20px) saturate(1.4);
-            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 0.5px solid var(--glass-border);
             border-radius: 100px;
-            padding: 10px 22px;
+            padding: 12px 24px;
             display: flex;
             align-items: center;
             gap: 20px;
             color: var(--text);
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 500;
             white-space: nowrap;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
             opacity: 0;
-            transition: opacity .4s ease;
+            transition: opacity 0.5s ease;
             pointer-events: none;
         }
         .stats-bar.visible { opacity: 1; pointer-events: auto; }
@@ -132,135 +134,115 @@
         .stat-item {
             display: flex;
             align-items: center;
-            gap: 7px;
+            gap: 8px;
         }
 
         .stat-dot {
             width: 8px; height: 8px;
             border-radius: 50%;
             background: var(--accent);
-            box-shadow: 0 0 6px var(--accent);
+            box-shadow: 0 0 8px var(--accent);
             flex-shrink: 0;
         }
-        .stat-dot.amber { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+        .stat-dot.amber { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
 
         .divider {
-            width: 1px; height: 18px;
+            width: 1px; height: 16px;
             background: var(--glass-border);
         }
 
         .stat-count {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
+            font-weight: 600;
             font-size: 14px;
         }
 
-        /* ── Live Location Ping ── */
-        .live-marker { position: relative; width: 20px; height: 20px; }
+        /* ── Live Location Ping (Refined) ── */
+        .live-marker { position: relative; width: 24px; height: 24px; }
         .live-marker .dot {
-            width: 14px; height: 14px;
-            background: #4ade80;
+            width: 16px; height: 16px;
+            background: #34c759; /* iOS Green */
             border-radius: 50%;
-            border: 2.5px solid #fff;
+            border: 3px solid #fff;
             position: absolute;
-            top: 3px; left: 3px;
-            box-shadow: 0 0 0 0 rgba(74,222,128,0.5);
-            animation: ping 1.8s ease-out infinite;
-        }
-        .live-marker .ring {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 2px solid rgba(74,222,128,0.6);
-            animation: ring-expand 1.8s ease-out infinite;
-        }
-
-        @keyframes ping {
-            0%   { box-shadow: 0 0 0 0 rgba(74,222,128,0.6); }
-            70%  { box-shadow: 0 0 0 12px rgba(74,222,128,0); }
-            100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); }
-        }
-        @keyframes ring-expand {
-            0%   { transform: scale(1); opacity: .7; }
-            100% { transform: scale(2.8); opacity: 0; }
+            top: 4px; left: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
         /* ── Disaster pulse icons ── */
-        .disaster-pulse { width: 16px; height: 16px; position: relative; }
+        .disaster-pulse { width: 20px; height: 20px; position: relative; }
         .disaster-pulse .core {
-            width: 10px; height: 10px;
+            width: 12px; height: 12px;
             background: var(--accent);
             border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.8);
+            border: 2px solid #fff;
             position: absolute;
-            top: 3px; left: 3px;
-            animation: disaster-ping 2.2s ease-out infinite;
+            top: 4px; left: 4px;
+            box-shadow: 0 0 10px rgba(255, 69, 58, 0.6);
+            animation: disaster-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
         }
         @keyframes disaster-ping {
-            0%, 60% { box-shadow: 0 0 0 0 rgba(239,68,68,0.7); }
-            100%   { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+            75%, 100% { transform: scale(2); opacity: 0; }
         }
 
-        /* ── Leaflet popups & controls ── */
+        /* ── Apple-style Leaflet Popups ── */
         .leaflet-popup-content-wrapper {
-            background: rgba(10,12,18,0.92) !important;
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255,255,255,0.1) !important;
-            border-radius: 14px !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4) !important;
+            background: rgba(28, 28, 30, 0.85) !important;
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 0.5px solid rgba(255,255,255,0.15) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
             color: var(--text) !important;
-            font-family: 'DM Mono', monospace !important;
-            padding: 2px !important;
+            font-family: var(--font-stack) !important;
+            padding: 4px !important;
         }
-        .leaflet-popup-tip { background: rgba(10,12,18,0.92) !important; }
-        .leaflet-popup-content { margin: 14px 16px !important; }
+        .leaflet-popup-tip { background: rgba(28, 28, 30, 0.85) !important; }
+        .leaflet-popup-content { margin: 12px 16px !important; }
         .popup-title {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 14px;
-            color: var(--accent);
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text);
             margin-bottom: 4px;
         }
         .popup-cat {
-            font-size: 10px;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-            color: var(--muted);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--accent);
             margin-bottom: 8px;
         }
         .popup-link {
             display: inline-block;
-            font-size: 10px;
-            color: #60a5fa;
+            font-size: 13px;
+            font-weight: 500;
+            color: #0a84ff; /* iOS Blue */
             text-decoration: none;
-            border-bottom: 1px solid rgba(96,165,250,0.3);
-            padding-bottom: 1px;
         }
+        .popup-link:hover { text-decoration: underline; }
+        
         .leaflet-control-zoom {
             border: none !important;
-            border-radius: 14px !important;
+            border-radius: 12px !important;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
         }
         .leaflet-control-zoom a {
-            background: rgba(10,12,18,0.85) !important;
-            backdrop-filter: blur(10px);
+            background: rgba(28, 28, 30, 0.85) !important;
+            backdrop-filter: blur(20px);
             color: var(--text) !important;
             border: none !important;
-            border-bottom: 1px solid rgba(255,255,255,0.06) !important;
-            font-size: 16px !important;
-            line-height: 28px !important;
-            width: 30px !important;
-            height: 30px !important;
+            border-bottom: 0.5px solid rgba(255,255,255,0.1) !important;
+            font-size: 18px !important;
+            line-height: 30px !important;
+            width: 32px !important;
+            height: 32px !important;
+            font-family: -apple-system, sans-serif !important;
         }
-        .leaflet-control-zoom a:hover { background: rgba(30,35,50,0.9) !important; }
+        .leaflet-control-zoom a:hover { background: rgba(58, 58, 60, 0.9) !important; }
 
         /* ── Mobile tweaks ── */
         @media (max-width: 480px) {
-            .weather-card { top: 14px; left: 14px; padding: 12px 16px; min-width: 160px; }
-            .weather-card .temp { font-size: 34px; }
-            .stats-bar { bottom: 16px; padding: 8px 16px; gap: 12px; font-size: 11px; }
-            .stat-count { font-size: 13px; }
+            .weather-card { top: 16px; left: 16px; padding: 16px 20px; min-width: 160px; border-radius: 20px; }
+            .weather-card .temp { font-size: 40px; }
+            .stats-bar { bottom: 24px; padding: 10px 20px; gap: 14px; font-size: 12px; }
         }
     </style>
 </head>
@@ -269,15 +251,15 @@
 <div id="map"></div>
 
 <div class="weather-card" id="weather-card">
-    <div class="label">Your Location</div>
+    <div class="label">Current Location</div>
     <div class="temp" id="temp-display">--<sup>°C</sup></div>
     <div class="meta">
         <div class="pill">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z"/></svg>
             <span id="wind-display">-- km/h</span>
-        }
+        </div>
         <div class="pill">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
             <span id="code-display">--</span>
         </div>
     </div>
@@ -286,7 +268,7 @@
 <div class="stats-bar" id="stats-bar">
     <div class="stat-item">
         <div class="stat-dot"></div>
-        <span>Active events</span>
+        <span>Today's Events</span>
         <span class="stat-count" id="event-count">--</span>
     </div>
     <div class="divider"></div>
@@ -295,35 +277,36 @@
         <span>NASA EONET</span>
     </div>
     <div class="divider"></div>
-    <div class="stat-item" style="color:var(--muted); font-size:10px;" id="update-time">--</div>
+    <div class="stat-item" style="color:var(--muted); font-size:11px;" id="update-time">--</div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Map Initialization focused on India
-    const indiaBounds = L.latLngBounds(
-        [6.7535, 68.1623], // Southwest bounds of India
-        [35.5087, 97.3956] // Northeast bounds of India
-    );
+    // Global data object for exporting/logging as requested
+    const siteDataJSON = {
+        timestamp: new Date().toISOString(),
+        userLocation: null,
+        currentWeather: null,
+        todaysDisasters: []
+    };
+
+    const indiaBounds = L.latLngBounds([6.7535, 68.1623], [35.5087, 97.3956]);
 
     const map = L.map('map', { 
         zoomControl: false, 
         attributionControl: false,
         maxBounds: indiaBounds,
-        maxBoundsViscosity: 1.0, // Prevents panning outside the set bounds
-        minZoom: 4 // Adjusts min zoom to prevent zooming out into the whole world
-    }).setView([20.5937, 78.9629], 5); // Centers directly on India
+        maxBoundsViscosity: 1.0,
+        minZoom: 4
+    }).setView([20.5937, 78.9629], 5);
 
+    // Apple-like clean dark map
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         subdomains: 'abcd', maxZoom: 20
     }).addTo(map);
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-    L.control.attribution({ position: 'bottomleft', prefix: '' })
-        .addAttribution('<span style="font-size:9px;color:rgba(255,255,255,.3)">© OpenStreetMap · CARTO · NASA EONET</span>')
-        .addTo(map);
 
-    // Cache DOM Elements for performance
     const DOM = {
         tempDisplay: document.getElementById('temp-display'),
         windDisplay: document.getElementById('wind-display'),
@@ -343,25 +326,25 @@
 
     const getWeatherLabel = (code) => weatherCodes[code] || `Code ${code}`;
 
-    // Custom Map Icons
     const liveIcon = L.divIcon({
         className: '',
-        html: `<div class="live-marker"><div class="dot"></div><div class="ring"></div></div>`,
-        iconSize: [20, 20], iconAnchor: [10, 10]
+        html: `<div class="live-marker"><div class="dot"></div></div>`,
+        iconSize: [24, 24], iconAnchor: [12, 12]
     });
 
     const disasterIcon = L.divIcon({
         className: '',
         html: `<div class="disaster-pulse"><div class="core"></div></div>`,
-        iconSize: [16, 16], iconAnchor: [8, 8]
+        iconSize: [20, 20], iconAnchor: [10, 10]
     });
 
-    // API Functions
     async function fetchWeather(lat, lon) {
         try {
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
             const { current_weather: cw } = await res.json();
             
+            siteDataJSON.currentWeather = cw;
+
             DOM.tempDisplay.innerHTML = `${Math.round(cw.temperature)}<sup>°C</sup>`;
             DOM.windDisplay.textContent = `${cw.windspeed} km/h`;
             DOM.codeDisplay.textContent = getWeatherLabel(cw.weathercode);
@@ -373,25 +356,40 @@
 
     async function fetchDisasters() {
         try {
-            const res = await fetch('https://eonet.gsfc.nasa.gov/api/v3/events?status=open');
+            // Fetch open events. Adding days=7 just to ensure we catch recent items before filtering manually to exactly "today"
+            const res = await fetch('https://eonet.gsfc.nasa.gov/api/v3/events?status=open&days=7');
             const data = await res.json();
             let count = 0;
+            
+            const todayString = new Date().toDateString();
 
-            // Process data in a document fragment-like manner for the map
             data.events.forEach(evt => {
                 const geo = evt.geometry[0];
                 if (geo.type !== 'Point') return;
+                
+                // FILTER: Only show today's disasters
+                const eventDateString = new Date(geo.date).toDateString();
+                if (eventDateString !== todayString) return;
+
                 const [lon, lat] = geo.coordinates;
                 
-                // Filtering events specifically falling into the Indian bounding box
+                // Within India
                 if (lat >= 6.7535 && lat <= 35.5087 && lon >= 68.1623 && lon <= 97.3956) {
                     count++;
+                    siteDataJSON.todaysDisasters.push({
+                        title: evt.title,
+                        category: evt.categories[0].title,
+                        date: geo.date,
+                        coordinates: { lat, lon },
+                        source: evt.sources?.length ? evt.sources[0].url : null
+                    });
+
                     L.marker([lat, lon], { icon: disasterIcon })
                         .addTo(map)
                         .bindPopup(`
                             <div class="popup-title">${evt.title}</div>
                             <div class="popup-cat">${evt.categories[0].title}</div>
-                            ${evt.sources?.length ? `<a href="${evt.sources[0].url}" target="_blank" class="popup-link">View source ↗</a>` : ''}
+                            ${evt.sources?.length ? `<a href="${evt.sources[0].url}" target="_blank" class="popup-link">Source</a>` : ''}
                         `);
                 }
             });
@@ -399,28 +397,30 @@
             DOM.eventCount.textContent = count;
             DOM.updateTime.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             DOM.statsBar.classList.add('visible');
+            
+            console.log("Site Data JSON payload:", JSON.stringify(siteDataJSON, null, 2));
+
         } catch(e) { 
             console.error('EONET error:', e); 
         }
     }
 
-    // Initialization Logic
     fetchDisasters();
 
-    // Fetch user geolocation if available
     if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
             pos => {
                 const { latitude: lat, longitude: lon } = pos.coords;
-                // Ensures you zoom securely into the location without escaping the locked bounds
+                siteDataJSON.userLocation = { latitude: lat, longitude: lon };
+                
                 map.setView([lat, lon], 5);
                 L.marker([lat, lon], { icon: liveIcon })
                     .addTo(map)
-                    .bindPopup('<span style="font-family:Syne,sans-serif;font-weight:700;color:#4ade80;">You are here</span>');
+                    .bindPopup('<span style="font-weight:600;color:#34c759;">Current Location</span>');
                 
                 fetchWeather(lat, lon);
             },
-            (error) => console.warn('Geolocation blocked/failed:', error.message),
+            (error) => console.warn('Geolocation failed:', error.message),
             { timeout: 10000, maximumAge: 60000 } 
         );
     }
