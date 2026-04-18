@@ -7,8 +7,6 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preconnect" href="https://unpkg.com">
-    
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
@@ -34,7 +32,7 @@
 
         #map {
             width: 100vw;
-            height: 100dvh;
+            height: 100dvh; /* Dynamic viewport height for mobile */
             position: fixed;
             inset: 0;
             z-index: 0;
@@ -47,8 +45,8 @@
             left: 20px;
             z-index: 1000;
             background: var(--glass);
-            backdrop-filter: blur(20px) saturate(1.4);
-            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            backdrop-filter: blur(12px) saturate(1.4); /* Reduced blur for mobile perf */
+            -webkit-backdrop-filter: blur(12px) saturate(1.4);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius);
             padding: 16px 20px;
@@ -57,50 +55,21 @@
             opacity: 0;
             transform: translateY(-8px);
             transition: opacity .4s ease, transform .4s ease;
-            pointer-events: none; /* Ignore clicks when hidden */
+            pointer-events: none;
+            will-change: transform, opacity; /* GPU acceleration */
         }
         .weather-card.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
-        .weather-card .label {
-            font-size: 10px;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 6px;
-        }
-
-        .weather-card .temp {
-            font-family: 'Syne', sans-serif;
-            font-size: 42px;
-            font-weight: 700;
-            line-height: 1;
-            color: var(--text);
-        }
-
-        .weather-card .temp sup {
-            font-size: 18px;
-            font-weight: 600;
-            vertical-align: super;
-        }
-
-        .weather-card .meta {
-            display: flex;
-            gap: 14px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
+        .weather-card .label { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+        .weather-card .temp { font-family: 'Syne', sans-serif; font-size: 42px; font-weight: 700; line-height: 1; color: var(--text); }
+        .weather-card .temp sup { font-size: 18px; font-weight: 600; vertical-align: super; }
+        .weather-card .meta { display: flex; gap: 14px; margin-top: 10px; flex-wrap: wrap; }
+        
         .weather-card .pill {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 11px;
-            color: var(--muted);
-            background: rgba(255,255,255,0.06);
-            border-radius: 100px;
-            padding: 4px 10px;
+            display: flex; align-items: center; gap: 5px; font-size: 11px;
+            color: var(--muted); background: rgba(255,255,255,0.06);
+            border-radius: 100px; padding: 4px 10px;
         }
-
         .weather-card .pill svg { flex-shrink: 0; }
 
         /* ── Stats Bar (bottom) ── */
@@ -111,8 +80,8 @@
             transform: translateX(-50%);
             z-index: 1000;
             background: var(--glass);
-            backdrop-filter: blur(20px) saturate(1.4);
-            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            backdrop-filter: blur(12px) saturate(1.4);
+            -webkit-backdrop-filter: blur(12px) saturate(1.4);
             border: 1px solid var(--glass-border);
             border-radius: 100px;
             padding: 10px 22px;
@@ -125,53 +94,25 @@
             opacity: 0;
             transition: opacity .4s ease;
             pointer-events: none;
+            will-change: opacity;
         }
         .stats-bar.visible { opacity: 1; pointer-events: auto; }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-        }
-
-        .stat-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--accent);
-            box-shadow: 0 0 6px var(--accent);
-            flex-shrink: 0;
-        }
+        .stat-item { display: flex; align-items: center; gap: 7px; }
+        .stat-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent); flex-shrink: 0; }
         .stat-dot.amber { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+        .divider { width: 1px; height: 18px; background: var(--glass-border); }
+        .stat-count { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; }
 
-        .divider {
-            width: 1px; height: 18px;
-            background: var(--glass-border);
-        }
-
-        .stat-count {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        /* ── Live Location Ping ── */
+        /* ── Markers ── */
         .live-marker { position: relative; width: 20px; height: 20px; }
         .live-marker .dot {
-            width: 14px; height: 14px;
-            background: #4ade80;
-            border-radius: 50%;
-            border: 2.5px solid #fff;
-            position: absolute;
-            top: 3px; left: 3px;
-            box-shadow: 0 0 0 0 rgba(74,222,128,0.5);
+            width: 14px; height: 14px; background: #4ade80; border-radius: 50%;
+            border: 2.5px solid #fff; position: absolute; top: 3px; left: 3px;
             animation: ping 1.8s ease-out infinite;
         }
         .live-marker .ring {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 2px solid rgba(74,222,128,0.6);
-            animation: ring-expand 1.8s ease-out infinite;
+            position: absolute; inset: 0; border-radius: 50%;
+            border: 2px solid rgba(74,222,128,0.6); animation: ring-expand 1.8s ease-out infinite;
         }
 
         @keyframes ping {
@@ -184,15 +125,10 @@
             100% { transform: scale(2.8); opacity: 0; }
         }
 
-        /* ── Disaster pulse icons ── */
         .disaster-pulse { width: 16px; height: 16px; position: relative; }
         .disaster-pulse .core {
-            width: 10px; height: 10px;
-            background: var(--accent);
-            border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.8);
-            position: absolute;
-            top: 3px; left: 3px;
+            width: 10px; height: 10px; background: var(--accent); border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.8); position: absolute; top: 3px; left: 3px;
             animation: disaster-ping 2.2s ease-out infinite;
         }
         @keyframes disaster-ping {
@@ -200,61 +136,22 @@
             100%   { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
         }
 
-        /* ── Leaflet popups & controls ── */
+        /* ── Leaflet overrides ── */
         .leaflet-popup-content-wrapper {
-            background: rgba(10,12,18,0.92) !important;
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255,255,255,0.1) !important;
-            border-radius: 14px !important;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4) !important;
-            color: var(--text) !important;
-            font-family: 'DM Mono', monospace !important;
-            padding: 2px !important;
+            background: rgba(10,12,18,0.92) !important; backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 14px !important;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4) !important; color: var(--text) !important;
+            font-family: 'DM Mono', monospace !important; padding: 2px !important;
         }
         .leaflet-popup-tip { background: rgba(10,12,18,0.92) !important; }
         .leaflet-popup-content { margin: 14px 16px !important; }
-        .popup-title {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 14px;
-            color: var(--accent);
-            margin-bottom: 4px;
-        }
-        .popup-cat {
-            font-size: 10px;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 8px;
-        }
-        .popup-link {
-            display: inline-block;
-            font-size: 10px;
-            color: #60a5fa;
-            text-decoration: none;
-            border-bottom: 1px solid rgba(96,165,250,0.3);
-            padding-bottom: 1px;
-        }
-        .leaflet-control-zoom {
-            border: none !important;
-            border-radius: 14px !important;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
-        }
-        .leaflet-control-zoom a {
-            background: rgba(10,12,18,0.85) !important;
-            backdrop-filter: blur(10px);
-            color: var(--text) !important;
-            border: none !important;
-            border-bottom: 1px solid rgba(255,255,255,0.06) !important;
-            font-size: 16px !important;
-            line-height: 28px !important;
-            width: 30px !important;
-            height: 30px !important;
-        }
-        .leaflet-control-zoom a:hover { background: rgba(30,35,50,0.9) !important; }
-
-        /* ── Mobile tweaks ── */
+        .popup-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--accent); margin-bottom: 4px; }
+        .popup-cat { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+        .popup-link { display: inline-block; font-size: 10px; color: #60a5fa; text-decoration: none; border-bottom: 1px solid rgba(96,165,250,0.3); padding-bottom: 1px; }
+        
+        .leaflet-control-zoom { border: none !important; border-radius: 14px !important; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important; }
+        .leaflet-control-zoom a { background: rgba(10,12,18,0.85) !important; backdrop-filter: blur(10px); color: var(--text) !important; border: none !important; border-bottom: 1px solid rgba(255,255,255,0.06) !important; font-size: 16px !important; line-height: 28px !important; width: 30px !important; height: 30px !important; }
+        
         @media (max-width: 480px) {
             .weather-card { top: 14px; left: 14px; padding: 12px 16px; min-width: 160px; }
             .weather-card .temp { font-size: 34px; }
@@ -299,7 +196,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Map Initialization
+    // 1. Initialize Map
     const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([20, 0], 2);
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png', {
@@ -308,10 +205,16 @@
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     L.control.attribution({ position: 'bottomleft', prefix: '' })
-        .addAttribution('<span style="font-size:9px;color:rgba(255,255,255,.3)">© OpenStreetMap · CARTO · NASA EONET</span>')
+        .addAttribution('<span style="font-size:9px;color:rgba(255,255,255,.3)">© OSM · CARTO · NASA</span>')
         .addTo(map);
 
-    // Cache DOM Elements for performance
+    // FIX: Force map to recognize mobile viewport bounds
+    setTimeout(() => map.invalidateSize(), 100);
+    window.addEventListener('resize', () => map.invalidateSize());
+
+    // 2. Layer Group for Performance
+    const disasterLayer = L.layerGroup().addTo(map);
+
     const DOM = {
         tempDisplay: document.getElementById('temp-display'),
         windDisplay: document.getElementById('wind-display'),
@@ -331,20 +234,9 @@
 
     const getWeatherLabel = (code) => weatherCodes[code] || `Code ${code}`;
 
-    // Custom Map Icons
-    const liveIcon = L.divIcon({
-        className: '',
-        html: `<div class="live-marker"><div class="dot"></div><div class="ring"></div></div>`,
-        iconSize: [20, 20], iconAnchor: [10, 10]
-    });
+    const liveIcon = L.divIcon({ className: '', html: `<div class="live-marker"><div class="dot"></div><div class="ring"></div></div>`, iconSize: [20, 20], iconAnchor: [10, 10] });
+    const disasterIcon = L.divIcon({ className: '', html: `<div class="disaster-pulse"><div class="core"></div></div>`, iconSize: [16, 16], iconAnchor: [8, 8] });
 
-    const disasterIcon = L.divIcon({
-        className: '',
-        html: `<div class="disaster-pulse"><div class="core"></div></div>`,
-        iconSize: [16, 16], iconAnchor: [8, 8]
-    });
-
-    // API Functions
     async function fetchWeather(lat, lon) {
         try {
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
@@ -354,9 +246,7 @@
             DOM.windDisplay.textContent = `${cw.windspeed} km/h`;
             DOM.codeDisplay.textContent = getWeatherLabel(cw.weathercode);
             DOM.weatherCard.classList.add('visible');
-        } catch(e) { 
-            console.error('Weather error:', e); 
-        }
+        } catch(e) { console.error('Weather error:', e); }
     }
 
     async function fetchDisasters() {
@@ -365,35 +255,30 @@
             const data = await res.json();
             let count = 0;
 
-            // Process data in a document fragment-like manner for the map
+            // FIX: Add all markers to the Layer Group instead of directly to map
             data.events.forEach(evt => {
                 const geo = evt.geometry[0];
                 if (geo.type !== 'Point') return;
                 const [lon, lat] = geo.coordinates;
                 count++;
 
-                L.marker([lat, lon], { icon: disasterIcon })
-                    .addTo(map)
+                const marker = L.marker([lat, lon], { icon: disasterIcon })
                     .bindPopup(`
                         <div class="popup-title">${evt.title}</div>
                         <div class="popup-cat">${evt.categories[0].title}</div>
                         ${evt.sources?.length ? `<a href="${evt.sources[0].url}" target="_blank" class="popup-link">View source ↗</a>` : ''}
                     `);
+                disasterLayer.addLayer(marker);
             });
 
             DOM.eventCount.textContent = count;
             DOM.updateTime.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             DOM.statsBar.classList.add('visible');
-        } catch(e) { 
-            console.error('EONET error:', e); 
-        }
+        } catch(e) { console.error('EONET error:', e); }
     }
 
-    // Initialization Logic
-    // Start fetching NASA data immediately as it's independent of the user's location
     fetchDisasters();
 
-    // Fetch user geolocation if available
     if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
             pos => {
@@ -406,7 +291,7 @@
                 fetchWeather(lat, lon);
             },
             (error) => console.warn('Geolocation blocked/failed:', error.message),
-            { timeout: 10000, maximumAge: 60000 } // Cache location for 60s for faster subsequent loads
+            { timeout: 10000, maximumAge: 60000 } 
         );
     }
 </script>
