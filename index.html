@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Live Disaster & Weather Map</title>
+    <title>Live Disaster & Weather Map - India</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -275,7 +275,7 @@
         <div class="pill">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7z"/></svg>
             <span id="wind-display">-- km/h</span>
-        </div>
+        }
         <div class="pill">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
             <span id="code-display">--</span>
@@ -300,8 +300,19 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Map Initialization
-    const map = L.map('map', { zoomControl: false, attributionControl: false }).setView([20, 0], 2);
+    // Map Initialization focused on India
+    const indiaBounds = L.latLngBounds(
+        [6.7535, 68.1623], // Southwest bounds of India
+        [35.5087, 97.3956] // Northeast bounds of India
+    );
+
+    const map = L.map('map', { 
+        zoomControl: false, 
+        attributionControl: false,
+        maxBounds: indiaBounds,
+        maxBoundsViscosity: 1.0, // Prevents panning outside the set bounds
+        minZoom: 4 // Adjusts min zoom to prevent zooming out into the whole world
+    }).setView([20.5937, 78.9629], 5); // Centers directly on India
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         subdomains: 'abcd', maxZoom: 20
@@ -371,15 +382,18 @@
                 const geo = evt.geometry[0];
                 if (geo.type !== 'Point') return;
                 const [lon, lat] = geo.coordinates;
-                count++;
-
-                L.marker([lat, lon], { icon: disasterIcon })
-                    .addTo(map)
-                    .bindPopup(`
-                        <div class="popup-title">${evt.title}</div>
-                        <div class="popup-cat">${evt.categories[0].title}</div>
-                        ${evt.sources?.length ? `<a href="${evt.sources[0].url}" target="_blank" class="popup-link">View source ↗</a>` : ''}
-                    `);
+                
+                // Filtering events specifically falling into the Indian bounding box
+                if (lat >= 6.7535 && lat <= 35.5087 && lon >= 68.1623 && lon <= 97.3956) {
+                    count++;
+                    L.marker([lat, lon], { icon: disasterIcon })
+                        .addTo(map)
+                        .bindPopup(`
+                            <div class="popup-title">${evt.title}</div>
+                            <div class="popup-cat">${evt.categories[0].title}</div>
+                            ${evt.sources?.length ? `<a href="${evt.sources[0].url}" target="_blank" class="popup-link">View source ↗</a>` : ''}
+                        `);
+                }
             });
 
             DOM.eventCount.textContent = count;
@@ -391,7 +405,6 @@
     }
 
     // Initialization Logic
-    // Start fetching NASA data immediately as it's independent of the user's location
     fetchDisasters();
 
     // Fetch user geolocation if available
@@ -399,6 +412,7 @@
         navigator.geolocation.getCurrentPosition(
             pos => {
                 const { latitude: lat, longitude: lon } = pos.coords;
+                // Ensures you zoom securely into the location without escaping the locked bounds
                 map.setView([lat, lon], 5);
                 L.marker([lat, lon], { icon: liveIcon })
                     .addTo(map)
@@ -407,7 +421,7 @@
                 fetchWeather(lat, lon);
             },
             (error) => console.warn('Geolocation blocked/failed:', error.message),
-            { timeout: 10000, maximumAge: 60000 } // Cache location for 60s for faster subsequent loads
+            { timeout: 10000, maximumAge: 60000 } 
         );
     }
 </script>
